@@ -1,0 +1,30 @@
+name: Build APK
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Build co van tay
+        id: b1
+        continue-on-error: true
+        run: bash ci/build.sh 1
+      - name: Build du phong khong van tay (chi chay khi buoc tren loi)
+        if: steps.b1.outcome == 'failure'
+        run: |
+          rm -rf android
+          bash ci/build.sh 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kaizen-1-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
